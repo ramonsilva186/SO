@@ -17,7 +17,7 @@ int store(int item, buffer *pb) {
   pb->sharedData += item;      
   pb->writeable = !pb->writeable;
 
-  pthread_mutex_unlock(&mutex);   //Destrava
+  //pthread_mutex_unlock(&mutex);//   //Destrava
 
   return 0;
 }
@@ -43,8 +43,8 @@ void *producer(void *n) {
   int j=1, soma = 0;
   while (j<=10) {
     store(j, &theBuffer);
-    printf("Produziu: %d --- Status do buffer: %d\n", j, theBuffer.sharedData);
-    //printf("Status do buffer: %d\n",theBuffer.sharedData);//
+    printf("Produziu: %d\n", j);
+    pthread_mutex_unlock(&mutex);
     soma += j++;
     delay(rand() % 6);  /* up to 5 sec */
   }
@@ -56,12 +56,11 @@ void *producer(void *n) {
 void *consumer(void *n) {
   int j=0, tot=0;
   while (theBuffer.cond) {
-    if (theBuffer.sharedData > 0){
+    if (theBuffer.sharedData > 0){ //Se o buffer estiver vazio "0", então ele não pode consumir
       j = retrieve(&theBuffer);
       tot += j;
+      printf("Consumiu: %d\n", j);
       pthread_mutex_unlock(&mutex);
-      printf("Consumiu: %d --- Status do buffer: %d\n", j, theBuffer.sharedData);
-      //printf("Status do buffer: %d\n",theBuffer.sharedData);//
       delay(rand() % 6);  /* up to 5 sec */
     }
   }
